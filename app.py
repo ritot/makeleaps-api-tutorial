@@ -5,17 +5,14 @@ import time
 Main application that sends documents via MakeLeapsAPI
 """
 
-#CLIENT_ID = '<your_client_id>'
-CLIENT_ID = "API2723752460167334971"
-#CLIENT_SECRET = '<your_client_secret>'
-CLIENT_SECRET = "BZ03SOVZ3omr44tTxtgaVT5NUqApJHsnpkjuHnkBld1vCUZeh6POdmYmttXyjn2mUuU2kQPTkPh9p2AG"
+CLIENT_ID = '<your_client_id>'
+CLIENT_SECRET = '<your_client_secret>'
 
 api = MakeLeapsAPI(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
 token = api.auth_client()
 print(token)
 
-#partner_mid = "XXXXXXXXXXXXXXXXXXX"
-partner_mid = "2723738093868535424"
+partner_mid = "XXXXXXXXXXXXXXXXXXX"
 
 # Create client
 client = {
