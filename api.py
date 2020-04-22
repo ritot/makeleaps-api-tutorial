@@ -55,22 +55,6 @@ class MakeLeapsAPI:
 
         return (response.status_code, response.json()['response'])
 
-    # can't use this because POST requests not accepted
-    def upload_pdf_wrong(self, token, url, filename):
-        """ Make authenticated POST request for uploading PDF
-        and return response status """
-
-        files = {
-            "file": (f'{filename}',
-                    open(f'{filename}', 'rb'),
-                    "application/pdf",
-                    {'Authorization': f'Bearer {token}'})
-        }
-        response = requests.post(url, files=files)
-        print(response.raise_for_status())
-
-        return (response.status_code)
-
     # TODO: Figure out what is still wrong
     # "response":{"content_file":["No file was submitted"]} -> Why?
     def upload_pdf(self, token, url, filename):
