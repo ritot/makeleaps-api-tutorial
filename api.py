@@ -13,9 +13,9 @@ class MakeLeapsAPI:
         self.client_secret = client_secret
         self.token = None
 
-    """ Authenticates Client """
-    # Returns access token
-    def _auth_client(self):
+    def auth_client(self):
+        """ Authenticate Client and return an access token """
+
         url = 'https://api-meetup.makeleaps.com/user/oauth2/token/'
 
         creds = f'{self.client_id}:{self.client_secret}'.encode('utf-8')
@@ -29,10 +29,10 @@ class MakeLeapsAPI:
 
         return response_json['access_token']
 
-    """ Make authenticated POST requests to API """
-    # The API will check if Bearer token in request is valid,
-    # and if so authenticate the request
     def post(self, token, url, data):
+        """ Make authenticated POST request
+        and return response status and data """
+
         headers = {
             'Content-Type': 'application/json',
             'Authorization': f'Bearer {token}',
@@ -42,8 +42,10 @@ class MakeLeapsAPI:
 
         return (response.status_code, response.json()['response'])
 
-    """ Make authenticated GET requests to API """
     def get(self, token, url):
+        """ Make authenticated GET request
+         and return response status and data """
+
         headers = {
             'Content-Type': 'application/json',
             'Authorization': f'Bearer {token}',
@@ -52,13 +54,32 @@ class MakeLeapsAPI:
 
         return (response.status_code, response.json()['response'])
 
-    # TODO: Figure out correct header format
-    """ Make authenticated PUT request for uploading PDF """
-    def put(self, token, url):
+    # can't use this because POST requests not accepted
+    def upload_pdf_wrong(self, token, url, filename):
+        """ Make authenticated POST request for uploading PDF
+        and return response status """
+
+        files = {
+            "file": (f'{filename}',
+                    open(f'{filename}', 'rb'),
+                    "application/pdf",
+                    {'Authorization': f'Bearer {token}'})
+        }
+        response = requests.post(url, files=files)
+        print(response.raise_for_status())
+
+        return (response.status_code)
+
+    # TODO: Figure out what is still wrong
+    # "response":{"content_file":["No file was submitted"]} -> Why?
+    def upload_pdf(self, token, url, filename):
+        """ Make authenticated POST request for uploading PDF
+        and return response status """
+        
         headers = {
-            'Content-Type': 'application/pdf',
+            'Content-Type': 'multipart/form-data',
             'Authorization': f'Bearer {token}',
         }
-        response = requests.put(url, headers=headers)
+        response = requests.put(url, data=open(f'{filename}', 'rb'), headers=headers)
 
-        return (response.status_code, response.json()['response'])
+        return(response.status_code)

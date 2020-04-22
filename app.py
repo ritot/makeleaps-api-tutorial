@@ -9,9 +9,10 @@ CLIENT_ID = '<your_client_id>'
 CLIENT_SECRET = '<your_client_secret>'
 
 api = MakeLeapsAPI(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
-token = api._auth_client()
+token = api.auth_client()
+print(token)
 
-partner_mid = 'XXXXXXXXXXXXXXXXXXX'
+partner_mid = "XXXXXXXXXXXXXXXXXXX"
 
 # Create client
 client = {
@@ -36,7 +37,7 @@ print("Creating client - status:", client_status)
 
 # Create document (with two different tax rates)
 document = {
-    "document_number": "INV000",
+    "document_number": "INV053",
     "document_type": "invoice",
     "document_template": "ja_JP_2",
     "date": "2020-04-17",
@@ -79,7 +80,7 @@ sending_order = {
 }
 sending_order_url = f'https://api-meetup.makeleaps.com/api/partner/{partner_mid}/sending/order/'
 order_status, order_res = api.post(token=token, url=sending_order_url, data=sending_order)
-print("Creating Sending Order - status:", order_status, order_res)
+print("Creating Sending Order - status:", order_status)
 
 # Add document to sending order
 item_1 = {"position": 0, "document": document_res['url']}
@@ -87,13 +88,13 @@ item_1_status, item_1_res = api.post(token=token, url=order_res['items_url'], da
 print("Adding item (document) - status:", item_1_status)
 
 # Add custom PDF to sending order
-item_2 = {"position": 1, "filename": "flyer.pdf"}
+filename = "flyer.pdf"
+item_2 = {"position": 1, "filename": f'{filename}'}
 item_2_status, item_2_res = api.post(token=token, url=order_res['items_url'], data=item_2)
 print("Adding item (pdf) - status:", item_2_status)
 
-# TODO: Figure out how to interact with API to upload PDF
-# Upload PDF
-upload_status, upload_res = api.put(token=token, url=order_res['pdf_content_url'])
+# Upload PDF to database
+upload_status = api.upload_pdf(token=token, url=item_2_res['upload_url'], filename=filename)
 print("Uploading item (pdf) - status:", upload_status)
 
 # Check for completion of processing
