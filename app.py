@@ -1,5 +1,6 @@
 from api import MakeLeapsAPI
 import time
+import os.path
 
 """
 Main application that sends documents via MakeLeapsAPI
@@ -10,7 +11,6 @@ CLIENT_SECRET = '<your_client_secret>'
 
 api = MakeLeapsAPI(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
 token = api.auth_client()
-print(token)
 
 partner_mid = "XXXXXXXXXXXXXXXXXXX"
 
@@ -37,7 +37,7 @@ print("Creating client - status:", client_status)
 
 # Create document (with two different tax rates)
 document = {
-    "document_number": "INV053",
+    "document_number": "INV054",
     "document_type": "invoice",
     "document_template": "ja_JP_2",
     "date": "2020-04-17",
@@ -83,22 +83,21 @@ order_status, order_res = api.post(token=token, url=sending_order_url, data=send
 print("Creating Sending Order - status:", order_status)
 
 # Add document to sending order
-item_1 = {"position": 0, "document": document_res['url']}
-item_1_status, item_1_res = api.post(token=token, url=order_res['items_url'], data=item_1)
-print("Adding item (document) - status:", item_1_status)
+doc_item = {"position": 0, "document": document_res['url']}
+doc_item_status, doc_item_res = api.post(token=token, url=order_res['items_url'], data=doc_item)
+print("Adding item (document) - status:", doc_item_status)
 
 # Add custom PDF to sending order
 filename = "flyer.pdf"
-item_2 = {"position": 1, "filename": f'{filename}'}
-item_2_status, item_2_res = api.post(token=token, url=order_res['items_url'], data=item_2)
-print("Adding item (pdf) - status:", item_2_status)
+file_item = {"position": 1, "filename": f'{filename}'}
+file_item_status, file_item_res = api.post(token=token, url=order_res['items_url'], data=file_item)
+print("Adding item (pdf) - status:", file_item_status)
 
 # Upload PDF to database
-upload_status = api.upload_pdf(token=token, url=item_2_res['upload_url'], filename=filename)
+upload_status = api.upload_pdf(token=token, url=file_item_res['upload_url'], filename=filename)
 print("Uploading item (pdf) - status:", upload_status)
 
-# Check for completion of processing
-# Max wait time is 1 minute [What should it be?]
+# Check for completion of processing, with a max wait time of 1 minute
 for i in range(30):
     ready_status, ready_res = api.get(token, url=order_res['url'])
     print("Processing - status:", ready_status)

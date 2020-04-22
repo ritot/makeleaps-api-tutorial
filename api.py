@@ -1,6 +1,7 @@
 import requests
 import base64
 import json
+import os.path
 
 """
 Helper class to handle authentication
@@ -75,11 +76,12 @@ class MakeLeapsAPI:
     def upload_pdf(self, token, url, filename):
         """ Make authenticated POST request for uploading PDF
         and return response status """
-        
+
         headers = {
             'Content-Type': 'multipart/form-data',
             'Authorization': f'Bearer {token}',
         }
-        response = requests.put(url, data=open(f'{filename}', 'rb'), headers=headers)
+        with open(filename, 'rb') as payload:
+            response = requests.put(url, data=payload, headers=headers)
 
         return(response.status_code)
