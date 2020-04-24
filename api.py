@@ -1,10 +1,9 @@
 import requests
 import base64
 import json
-import os.path
 
 """
-Helper class to handle authentication
+Helper class to handle authentication and API calls
 """
 
 class MakeLeapsAPI:
@@ -55,17 +54,16 @@ class MakeLeapsAPI:
 
         return (response.status_code, response.json()['response'])
 
-    # TODO: Figure out what is still wrong
-    # "response":{"content_file":["No file was submitted"]} -> Why?
-    def upload_pdf(self, token, url, filename):
-        """ Make authenticated POST request for uploading PDF
-        and return response status """
+    def put(self, token, url, filename):
+        """ Make authenticated PUT request for uploading file
+        and return response status and data"""
 
         headers = {
-            'Content-Type': 'multipart/form-data',
             'Authorization': f'Bearer {token}',
         }
-        with open(filename, 'rb') as payload:
-            response = requests.put(url, data=payload, headers=headers)
+        files = {
+            'content_file': open(f'{filename}', 'rb')
+        }
+        response = requests.put(url, files=files, headers=headers)
 
-        return(response.status_code)
+        return(response.status_code, response.json()['response'])

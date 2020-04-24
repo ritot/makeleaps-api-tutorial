@@ -1,6 +1,5 @@
 from api import MakeLeapsAPI
 import time
-import os.path
 
 """
 Main application that sends documents via MakeLeapsAPI
@@ -37,7 +36,7 @@ print("Creating client - status:", client_status)
 
 # Create document (with two different tax rates)
 document = {
-    "document_number": "INV054",
+    "document_number": "INV058",
     "document_type": "invoice",
     "document_template": "ja_JP_2",
     "date": "2020-04-17",
@@ -57,7 +56,6 @@ document = {
             "tax": {"amount": "9899.9", "currency": "JPY"}
         }
     },
-    # The following four lines seem redundant but I get a error when it's left out
     "currency": "JPY",
     "total": "99999",
     "subtotal": "99999",
@@ -93,12 +91,12 @@ file_item = {"position": 1, "filename": f'{filename}'}
 file_item_status, file_item_res = api.post(token=token, url=order_res['items_url'], data=file_item)
 print("Adding item (pdf) - status:", file_item_status)
 
-# Upload PDF to database
-upload_status = api.upload_pdf(token=token, url=file_item_res['upload_url'], filename=filename)
+# Upload custom PDF to database
+upload_status, upload_res = api.put(token=token, url=file_item_res['upload_url'], filename=filename)
 print("Uploading item (pdf) - status:", upload_status)
 
 # Check for completion of processing, with a max wait time of 1 minute
-for i in range(30):
+for i in range(20):
     ready_status, ready_res = api.get(token, url=order_res['url'])
     print("Processing - status:", ready_status)
     if ready_res['ready_to_order']:
@@ -107,4 +105,4 @@ for i in range(30):
         print("Successfully sent - status:", send_status)
         break
     else:
-        time.sleep(2)
+        time.sleep(3)
