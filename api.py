@@ -14,7 +14,7 @@ class MakeLeapsAPI:
         self.token = None
 
     def auth_client(self):
-        """ Authenticate Client and return an access token """
+        """ Authenticate Client and retrieve an access token """
 
         url = 'https://api-meetup.makeleaps.com/user/oauth2/token/'
 
@@ -27,43 +27,42 @@ class MakeLeapsAPI:
         response = requests.post(url, data=data, headers=headers)
         response_json = response.json()
 
-        return response_json['access_token']
+        self.token = response_json['access_token']
 
-    def post(self, token, url, data):
+    def authorize_header(self):
+        """ Pass token into header """
+
+        return {'Authorization': f'Bearer {self.token}'}
+
+    def post(self, url, data):
         """ Make authenticated POST request
         and return response status and data """
 
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {token}',
-        }
+        headers = self.authorize_header()
+        headers['Content-Type'] = 'application/json'
+
         data = json.dumps(data)
         response = requests.post(url, data=data, headers=headers)
 
-        return (response.status_code, response.json()['response'])
+        return response.status_code, response.json()['response']
 
-    def get(self, token, url):
+    def get(self, url):
         """ Make authenticated GET request
          and return response status and data """
 
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {token}',
-        }
+        headers = self.authorize_header()
+        headers['Content-Type'] = 'application/json'
+
         response = requests.get(url, headers=headers)
 
-        return (response.status_code, response.json()['response'])
+        return response.status_code, response.json()['response']
 
-    def put(self, token, url, filename):
+    def put(self, url, files):
         """ Make authenticated PUT request for uploading file
         and return response status and data"""
 
-        headers = {
-            'Authorization': f'Bearer {token}',
-        }
-        files = {
-            'content_file': open(f'{filename}', 'rb')
-        }
+        headers = self.authorize_header()
+
         response = requests.put(url, files=files, headers=headers)
 
-        return(response.status_code, response.json()['response'])
+        return response.status_code, response.json()['response']
