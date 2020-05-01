@@ -3,6 +3,8 @@ import time
 
 """
 Main application that sends documents via MakeLeapsAPI
+Creates one document, as well as read in pre-existing ones,
+then sends them to a client
 """
 
 CLIENT_ID = '<your_client_id>'
@@ -64,6 +66,14 @@ document_url = f'https://api-meetup.makeleaps.com/api/partner/{partner_mid}/docu
 document_status, document_res = api.post(url=document_url, data=document)
 print("Creating document - status:", document_status)
 
+# Get other documents from same client
+doc_list_status, doc_list_response = api.get(url=document_url)
+document_list = []
+for doc in doc_list_response:
+    if (doc['client'] == client_res['url']):
+        document_list.append(doc['url'])
+print("Getting other documents - status:", doc_list_status)
+
 # Create sending order
 sending_order = {
     "recipient_organization": f"{client_res['url']}",
@@ -79,14 +89,23 @@ sending_order_url = f'https://api-meetup.makeleaps.com/api/partner/{partner_mid}
 order_status, order_res = api.post(url=sending_order_url, data=sending_order)
 print("Creating Sending Order - status:", order_status)
 
-# Add document to sending order
-doc_item = {"position": 0, "document": document_res['url']}
+# Add created document to sending order
+position = 0
+doc_item = {"position": position, "document": document_res['url']}
 doc_item_status, doc_item_res = api.post(url=order_res['items_url'], data=doc_item)
 print("Adding item (document) - status:", doc_item_status)
 
+# Add other documents to sending order
+for doc in document_list:
+    position += 1
+    doc_item = {"position": position, "document": f'{doc}'}
+    doc_item_status, doc_item_res = api.post(url=order_res['items_url'], data=doc_item)
+    print("Adding item (document) - status:", doc_item_status)
+
 # Add custom PDF to sending order
 filename = "flyer.pdf"
-file_item = {"position": 1, "filename": f'{filename}'}
+position += 1
+file_item = {"position": position, "filename": f'{filename}'}
 file_item_status, file_item_res = api.post(url=order_res['items_url'], data=file_item)
 print("Adding item (pdf) - status:", file_item_status)
 
