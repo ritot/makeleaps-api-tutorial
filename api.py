@@ -3,7 +3,7 @@ import base64
 import json
 
 """
-Helper class to handle authentication
+Helper class to handle authentication and API calls
 """
 
 class MakeLeapsAPI:
@@ -14,7 +14,7 @@ class MakeLeapsAPI:
         self.token = None
 
     def auth_client(self):
-        """ Authenticate Client and return an access token """
+        """ Authenticate Client and retrieve an access token """
 
         url = 'https://api-meetup.makeleaps.com/user/oauth2/token/'
 
@@ -27,59 +27,42 @@ class MakeLeapsAPI:
         response = requests.post(url, data=data, headers=headers)
         response_json = response.json()
 
-        return response_json['access_token']
+        self.token = response_json['access_token']
 
-    def post(self, token, url, data):
+    def authorize_header(self):
+        """ Pass token into header """
+
+        return {'Authorization': f'Bearer {self.token}'}
+
+    def post(self, url, data):
         """ Make authenticated POST request
         and return response status and data """
 
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {token}',
-        }
+        headers = self.authorize_header()
+        headers['Content-Type'] = 'application/json'
+
         data = json.dumps(data)
         response = requests.post(url, data=data, headers=headers)
 
-        return (response.status_code, response.json()['response'])
+        return response.status_code, response.json()['response']
 
-    def get(self, token, url):
+    def get(self, url):
         """ Make authenticated GET request
          and return response status and data """
 
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {token}',
-        }
+        headers = self.authorize_header()
+        headers['Content-Type'] = 'application/json'
+
         response = requests.get(url, headers=headers)
 
-        return (response.status_code, response.json()['response'])
+        return response.status_code, response.json()['response']
 
-    # can't use this because POST requests not accepted
-    def upload_pdf_wrong(self, token, url, filename):
-        """ Make authenticated POST request for uploading PDF
-        and return response status """
+    def put(self, url, files):
+        """ Make authenticated PUT request for uploading file
+        and return response status and data"""
 
-        files = {
-            "file": (f'{filename}',
-                    open(f'{filename}', 'rb'),
-                    "application/pdf",
-                    {'Authorization': f'Bearer {token}'})
-        }
-        response = requests.post(url, files=files)
-        print(response.raise_for_status())
+        headers = self.authorize_header()
 
-        return (response.status_code)
+        response = requests.put(url, files=files, headers=headers)
 
-    # TODO: Figure out what is still wrong
-    # "response":{"content_file":["No file was submitted"]} -> Why?
-    def upload_pdf(self, token, url, filename):
-        """ Make authenticated POST request for uploading PDF
-        and return response status """
-        
-        headers = {
-            'Content-Type': 'multipart/form-data',
-            'Authorization': f'Bearer {token}',
-        }
-        response = requests.put(url, data=open(f'{filename}', 'rb'), headers=headers)
-
-        return(response.status_code)
+        return response.status_code, response.json()['response']

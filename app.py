@@ -9,8 +9,9 @@ CLIENT_ID = '<your_client_id>'
 CLIENT_SECRET = '<your_client_secret>'
 
 api = MakeLeapsAPI(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
-token = api.auth_client()
-print(token)
+
+# Create access token
+api.auth_client()
 
 partner_mid = "XXXXXXXXXXXXXXXXXXX"
 
@@ -32,12 +33,12 @@ client = {
     ],
 }
 client_url = f'https://api-meetup.makeleaps.com/api/partner/{partner_mid}/client/'
-client_status, client_res = api.post(token=token, url=client_url, data=client)
+client_status, client_res = api.post(url=client_url, data=client)
 print("Creating client - status:", client_status)
 
 # Create document (with two different tax rates)
 document = {
-    "document_number": "INV053",
+    "document_number": "INV001",
     "document_type": "invoice",
     "document_template": "ja_JP_2",
     "date": "2020-04-17",
@@ -57,14 +58,13 @@ document = {
             "tax": {"amount": "9899.9", "currency": "JPY"}
         }
     },
-    # The following four lines seem redundant but I get a error when it's left out
     "currency": "JPY",
     "total": "99999",
     "subtotal": "99999",
     "tax": "10699.9",
 }
 document_url = f'https://api-meetup.makeleaps.com/api/partner/{partner_mid}/document/'
-document_status, document_res = api.post(token=token, url=document_url, data=document)
+document_status, document_res = api.post(url=document_url, data=document)
 print("Creating document - status:", document_status)
 
 # Create sending order
@@ -79,33 +79,33 @@ sending_order = {
     "stamp_type": "invoice",
 }
 sending_order_url = f'https://api-meetup.makeleaps.com/api/partner/{partner_mid}/sending/order/'
-order_status, order_res = api.post(token=token, url=sending_order_url, data=sending_order)
+order_status, order_res = api.post(url=sending_order_url, data=sending_order)
 print("Creating Sending Order - status:", order_status)
 
 # Add document to sending order
-item_1 = {"position": 0, "document": document_res['url']}
-item_1_status, item_1_res = api.post(token=token, url=order_res['items_url'], data=item_1)
-print("Adding item (document) - status:", item_1_status)
+doc_item = {"position": 0, "document": document_res['url']}
+doc_item_status, doc_item_res = api.post(url=order_res['items_url'], data=doc_item)
+print("Adding item (document) - status:", doc_item_status)
 
 # Add custom PDF to sending order
 filename = "flyer.pdf"
-item_2 = {"position": 1, "filename": f'{filename}'}
-item_2_status, item_2_res = api.post(token=token, url=order_res['items_url'], data=item_2)
-print("Adding item (pdf) - status:", item_2_status)
+file_item = {"position": 1, "filename": f'{filename}'}
+file_item_status, file_item_res = api.post(url=order_res['items_url'], data=file_item)
+print("Adding item (pdf) - status:", file_item_status)
 
-# Upload PDF to database
-upload_status = api.upload_pdf(token=token, url=item_2_res['upload_url'], filename=filename)
+# Upload custom PDF to database
+files = {'content_file': open(f'{filename}', 'rb')}
+upload_status, upload_res = api.put(url=file_item_res['upload_url'], files=files)
 print("Uploading item (pdf) - status:", upload_status)
 
-# Check for completion of processing
-# Max wait time is 1 minute [What should it be?]
-for i in range(30):
-    ready_status, ready_res = api.get(token, url=order_res['url'])
+# Check for completion of processing (max wait time: 1 minute)
+for i in range(20):
+    ready_status, ready_res = api.get(url=order_res['url'])
     print("Processing - status:", ready_status)
     if ready_res['ready_to_order']:
         # Send sending order
-        send_status, send_res = api.post(token=token, url=order_res['send_url'], data={})
+        send_status, send_res = api.post(url=order_res['send_url'], data={})
         print("Successfully sent - status:", send_status)
         break
     else:
-        time.sleep(2)
+        time.sleep(3)
