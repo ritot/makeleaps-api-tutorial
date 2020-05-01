@@ -12,8 +12,9 @@ class MakeLeapsAPI:
         self.client_id = client_id
         self.client_secret = client_secret
         self.token = None
+        self._auth_client()
 
-    def auth_client(self):
+    def _auth_client(self):
         """ Authenticate Client and retrieve an access token """
 
         url = 'https://api-meetup.makeleaps.com/user/oauth2/token/'
@@ -29,7 +30,7 @@ class MakeLeapsAPI:
 
         self.token = response_json['access_token']
 
-    def authorize_header(self):
+    def _authorize_header(self):
         """ Pass token into header """
 
         return {'Authorization': f'Bearer {self.token}'}
@@ -38,10 +39,10 @@ class MakeLeapsAPI:
         """ Make authenticated POST request
         and return response status and data """
 
-        headers = self.authorize_header()
+        headers = self._authorize_header()
         headers['Content-Type'] = 'application/json'
-
         data = json.dumps(data)
+
         response = requests.post(url, data=data, headers=headers)
 
         return response.status_code, response.json()['response']
@@ -50,18 +51,22 @@ class MakeLeapsAPI:
         """ Make authenticated GET request
          and return response status and data """
 
-        headers = self.authorize_header()
+        headers = self._authorize_header()
         headers['Content-Type'] = 'application/json'
 
         response = requests.get(url, headers=headers)
 
         return response.status_code, response.json()['response']
 
-    def put(self, url, files):
-        """ Make authenticated PUT request for uploading file
-        and return response status and data"""
+    def put(self, url, filename):
+        """ Make authenticated PUT request
+        and return response status and data """
 
-        headers = self.authorize_header()
+        headers = self._authorize_header()
+
+        files = {}
+        if filename:
+            files['content_file'] = open(f'{filename}', 'rb')
 
         response = requests.put(url, files=files, headers=headers)
 
