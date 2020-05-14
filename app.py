@@ -10,9 +10,6 @@ CLIENT_SECRET = '<your_client_secret>'
 
 api = MakeLeapsAPI(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
 
-# Create access token
-api.auth_client()
-
 partner_mid = "XXXXXXXXXXXXXXXXXXX"
 
 # Create client
@@ -94,8 +91,7 @@ file_item_status, file_item_res = api.post(url=order_res['items_url'], data=file
 print("Adding item (pdf) - status:", file_item_status)
 
 # Upload custom PDF to database
-files = {'content_file': open(f'{filename}', 'rb')}
-upload_status, upload_res = api.put(url=file_item_res['upload_url'], files=files)
+upload_status, upload_res = api.put(url=file_item_res['upload_url'], filename=filename)
 print("Uploading item (pdf) - status:", upload_status)
 
 # Check for completion of processing (max wait time: 1 minute)
