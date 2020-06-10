@@ -2,6 +2,8 @@
 const axios = require('axios').default;
 // necessary for using x-www-form-urlencoded format for OAuth2
 const querystring = require('querystring');
+// necessary for uploading files
+const fs = require('fs');
 
 /**
  * Helper class to handle authentication and API calls
@@ -87,7 +89,17 @@ class MakeLeapsAPI
       }
     };
 
-    return axios.put(url, data, options)
+    const files = {};
+    if (filename != null) {
+      fs.readFile(`${filename}`, 'utf8', function(err, data) {
+        if (err) {
+          console.log(err)
+        }
+        files['content_file'] = data
+      });
+    }
+
+    return axios.put(url, files, options)
                 .then(response => {
                   return response
                 })
